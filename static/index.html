@@ -1,0 +1,109 @@
+<html>
+    <head>
+        <script src="cytoscape/cytoscape.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+        <style>
+            #cy {
+                width: 500px;
+                height: 500px;
+                display: block;
+                background-color: #eeeeee;
+            }
+        </style>
+
+
+    </head>
+        <body>
+            <div id="cy"></div>
+            <input type="text" id="position">-</input>
+            <button id="prev">&lt;-</button>
+            <button id="next">-&gt;</button>
+<script>
+
+shitty_data = [
+{"header":"HAB_MSG","time":"156385147303426","src":"172.17.0.3:43420","msg":{"variant":"Ping","fields":[{"member_id":"7e4369c0-9e13-4689-987a-245214072df8","listening_on":"172.17.0.3:9001","proxy_through":null,"proxy_to":null},{"rumors":{},"heat":{}}]}},
+{"header":"HAB_MSG","time":"156385191578627","src":"172.17.0.3:56108","msg":{"variant":"Ping","fields":[{"member_id":"7e4369c0-9e13-4689-987a-245214072df8","listening_on":"172.17.0.3:9001","proxy_through":null,"proxy_to":null},{"rumors":{"6af750cb-3cce-4fba-9e3a-eacb61a29ad6":{"id":"6af750cb-3cce-4fba-9e3a-eacb61a29ad6","payload":{"variant":"CensusEntry","fields":[{"id":"6af750cb-3cce-4fba-9e3a-eacb61a29ad6","member_id":"d52be1ac-a799-402d-a073-72948e18bdf7","hostname":"036a0abf8b6a","ip":"172.17.0.3","suitability":0,"port":null,"exposes":[],"leader":false,"follower":false,"data_init":false,"vote":null,"election":null,"needs_write":null,"initialized":false,"keep_me":true,"service":"simple_service","group":"simple_service.test","alive":true,"suspect":false,"confirmed":false,"detached":false,"incarnation":{"counter":0}}]}},"0606deea-6635-4772-b407-332e83b84f83":{"id":"0606deea-6635-4772-b407-332e83b84f83","payload":{"variant":"CensusEntry","fields":[{"id":"0606deea-6635-4772-b407-332e83b84f83","member_id":"7e4369c0-9e13-4689-987a-245214072df8","hostname":"036a0abf8b6a","ip":"172.17.0.3","suitability":0,"port":null,"exposes":[],"leader":false,"follower":false,"data_init":false,"vote":null,"election":null,"needs_write":null,"initialized":false,"keep_me":true,"service":"simple_service","group":"simple_service.test","alive":true,"suspect":false,"confirmed":false,"detached":false,"incarnation":{"counter":0}}]}},"526de7fd-f497-4ac8-b4c6-682f6226f74d":{"id":"526de7fd-f497-4ac8-b4c6-682f6226f74d","payload":{"variant":"Member","fields":[{"id":"526de7fd-f497-4ac8-b4c6-682f6226f74d","hostname":"036a0abf8b6a","ip":"172.17.0.3","gossip_listener":"172.17.0.3:9000","incarnation":{"counter":0},"health":"Alive","permanent":false}]}},"f17afc85-5b7b-40f4-9728-0f59efac7d3c":{"id":"f17afc85-5b7b-40f4-9728-0f59efac7d3c","payload":{"variant":"CensusEntry","fields":[{"id":"f17afc85-5b7b-40f4-9728-0f59efac7d3c","member_id":"526de7fd-f497-4ac8-b4c6-682f6226f74d","hostname":"036a0abf8b6a","ip":"172.17.0.3","suitability":0,"port":null,"exposes":[],"leader":false,"follower":false,"data_init":false,"vote":null,"election":null,"needs_write":null,"initialized":false,"keep_me":true,"service":"simple_service","group":"simple_service.test","alive":true,"suspect":false,"confirmed":false,"detached":false,"incarnation":{"counter":0}}]}},"7e4369c0-9e13-4689-987a-245214072df8":{"id":"7e4369c0-9e13-4689-987a-245214072df8","payload":{"variant":"Member","fields":[{"id":"7e4369c0-9e13-4689-987a-245214072df8","hostname":"036a0abf8b6a","ip":"172.17.0.3","gossip_listener":"172.17.0.3:9001","incarnation":{"counter":0},"health":"Alive","permanent":false}]}},"d52be1ac-a799-402d-a073-72948e18bdf7":{"id":"d52be1ac-a799-402d-a073-72948e18bdf7","payload":{"variant":"Member","fields":[{"id":"d52be1ac-a799-402d-a073-72948e18bdf7","hostname":"036a0abf8b6a","ip":"172.17.0.3","gossip_listener":"172.17.0.3:9000","incarnation":{"counter":0},"health":"Alive","permanent":false}]}}},"heat":{}}]}}
+]
+
+var current_step = 0;
+
+
+$(document).ready(function(){
+
+    var cy = cytoscape({
+
+    container: document.getElementById('cy'), // container to render in
+
+    elements: [ // list of graph elements to start with
+        { // node a
+        data: { id: 'a' }
+        },
+        { // node b
+        data: { id: 'b' }
+        },
+        { // edge ab
+        data: { id: 'ab', source: 'a', target: 'b' }
+        }
+    ],
+
+    style: [ // the stylesheet for the graph
+        {
+        selector: 'node',
+        style: {
+            'background-color': '#666',
+            'label': 'data(id)'
+        }
+        },
+
+        {
+        selector: 'edge',
+        style: {
+            'width': 3,
+            'line-color': '#ccc',
+            'target-arrow-color': '#ccc',
+            'target-arrow-shape': 'triangle'
+        }
+        }
+    ],
+
+    layout: {
+        name: 'circle'
+    }
+
+    });
+
+    function process_step() {
+        var current = shitty_data[current_step];
+        console.log("Adding node " + current.src);
+        var eles = cy.add([
+                { group: "nodes", data: { id: current.src }, position: {x: 200, y:200} }
+        ]);
+
+        var layout = cy.makeLayout({
+        name: 'circle'
+        });
+
+        layout.run();
+        //cy.forceRender()
+    }
+
+
+
+    $("#position").val(current_step);
+
+    $("#next").click(function(){
+        current_step += 1;
+        $("#position").val(current_step);
+        process_step();
+    });
+
+    $("#prev").click(function(){
+        current_step -= 1;
+        $("#position").val(current_step);
+        process_step();
+    });
+});
+</script>
+
+    </body>
+</html>
